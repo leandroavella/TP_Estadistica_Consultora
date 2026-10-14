@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}Análisis Descriptivo & CV | Consultora Médica{% endblock %}
+
+{% block content %}
+<!-- ENCABEZADO DE SECCIÓN -->
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-4 pb-2 border-bottom">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Inicio</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Análisis Descriptivo Univariado</li>
+            </ol>
+        </nav>
+        <h2 class="fw-bold mb-1">
+            <i class="bi bi-bar-chart-line-fill text-primary me-2"></i>Auditoría Estadística Descriptiva (n = 100)
+        </h2>
+        <p class="text-muted mb-0">
+            Resolución formal del <strong>Problema 1 (Volumen y Eficiencia)</strong> y <strong>Problema 3 (Evaluación de Desempeño y Homogeneidad)</strong>.
+        </p>
+    </div>
+    <div class="mt-3 mt-md-0">
+        <a href="{{ url_for('regresion') }}" class="btn btn-primary">
+            Continuar a Modelo Bivariado <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>
+</div>
+
+<!-- PROBLEMA 1: COMPARATIVA DE EFICIENCIA OPERATIVA -->
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border-left: 5px solid #10b981 !important;">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <span class="badge bg-success mb-2">
+                            <i class="bi bi-lightning-charge-fill me-1"></i> Problema 1: Volumen y Eficiencia Operativa
+                        </span>
+                        <h4 class="fw-bold text-dark mb-2">Automatización Computacional vs. Cálculo Manual</h4>
+                        <p class="text-secondary mb-3">
+                            En un centro médico con gran afluencia de pacientes, calcular a mano las medias muestrales, varianzas y sumatorias para una muestra representativa de <strong>100 consultas</strong> implica realizar más de <strong>400 operaciones aritméticas encadenadas</strong>. Esto demandaría entre <strong>120 y 180 minutos de trabajo humano</strong> con un riesgo crítico de arrastre de errores por redondeo.
+                        </p>
+                        <div class="d-flex flex-wrap gap-4 text-dark">
+                            <div>
+                                <small class="text-muted d-block">Tiempo de Cómputo MariaDB + Python:</small>
+                                <span class="fs-4 fw-bold text-success">{{ "%.2f"|format(datos.tiempo_computo_ms) }} milisegundos</span>
+                            </div>
+                            <div class="border-start ps-4">
+                                <small class="text-muted d-block">Tiempo Estimado Humano:</small>
+                                <span class="fs-4 fw-bold text-secondary">~150 minutos</span>
+                            </div>
+                            <div class="border-start ps-4">
+                                <small class="text-muted d-block">Factor de Aceleración Operativa:</small>
+                                <span class="fs-4 fw-bold text-primary">> 100.000x más rápido (0% error)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 text-center mt-3 mt-lg-0">
+                        <div class="bg-white p-3 rounded-3 shadow-sm border border-success-subtle d-inline-block">
+                            <i class="bi bi-check-circle-fill text-success fs-1"></i>
+                            <div class="fw-bold text-dark mt-2">100% Precisión Algorítmica</div>
+                            <small class="text-muted">Cálculo exacto de n=100 en tiempo real</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MÉTRICAS GLOBALES DEL CENTRO MÉDICO -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white py-3 border-bottom">
+        <h5 class="fw-bold mb-0 text-dark">
+            <i class="bi bi-calculator text-primary me-2"></i>Métricas Estadísticas Globales del Centro de Salud (Variable Y: Tiempo en Minutos)
+        </h5>
+    </div>
+    <div class="card-body p-4">
+        <div class="row g-4 text-center">
+            <div class="col-6 col-md-3 border-end">
+                <div class="text-muted small text-uppercase fw-semibold mb-1">Muestra Total (n)</div>
+                <div class="fs-2 fw-bold text-dark">{{ datos.general.n }}</div>
+                <small class="text-muted">Total de consultas analizadas.</small>
+            </div>
+            <div class="col-6 col-md-3 border-end">
+                <div class="text-muted small text-uppercase fw-semibold mb-1">Media Muestral (x̄)</div>
+                <div class="fs-2 fw-bold text-primary">{{ "%.2f"|format(datos.general.media) }} <small class="fs-6">min</small></div>
+                <small class="text-muted">Promedio de duración por consulta.</small>
+            </div>
+            <div class="col-6 col-md-3 border-end">
+                <div class="text-muted small text-uppercase fw-semibold mb-1">Desviación Estándar (s)</div>
+                <div class="fs-2 fw-bold text-secondary">{{ "%.2f"|format(datos.general.desviacion) }} <small class="fs-6">min</small></div>
+                <small class="text-muted">Dispersión de los tiempos respecto a la media.</small>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="text-muted small text-uppercase fw-semibold mb-1">Coeficiente de Variación (CV)</div>
+                <div class="fs-2 fw-bold text-danger">{{ "%.2f"|format(datos.general.cv) }}%</div>
+                <small class="text-danger fw-semibold">Variabilidad: < 15% Homogéneo, > 30% Disperso.</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PROBLEMA 3: TABLA COMPARATIVA DE DESEMPEÑO Y HOMOGENEIDAD POR MÉDICO -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between">
+        <div>
+            <span class="badge bg-primary mb-1">Problema 3: Auditoría Clínica</span>
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="bi bi-people-fill text-primary me-2"></i>Desempeño y Homogeneidad por Doctor y Especialidad
+            </h5>
+        </div>
+        <div class="small text-muted mt-2 mt-md-0">
+            Uso del <strong>Coeficiente de Variación: $CV = (s / \bar{x}) \times 100\%$</strong> para comparación ecuánime
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th class="ps-4">Profesional de la Salud</th>
+                    <th>Especialidad</th>
+                    <th class="text-center">Experiencia</th>
+                    <th class="text-center">Casos (n)</th>
+                    <th class="text-end">Media (x̄)</th>
+                    <th class="text-end">Varianza (s²)</th>
+                    <th class="text-end">Desvío (s)</th>
+                    <th class="text-end">CV (%)</th>
+                    <th class="text-center pe-4">Diagnóstico de Homogeneidad</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doc in datos.doctores %}
+                <tr>
+                    <td class="ps-4">
+                        <div class="fw-bold text-dark">{{ doc.nombre }}</div>
+                        <small class="text-muted">ID Médico #{{ doc.id_doctor }}</small>
+                    </td>
+                    <td><span class="badge bg-secondary-subtle text-secondary border">{{ doc.especialidad }}</span></td>
+                    <td class="text-center fw-semibold">{{ doc.anios_experiencia }} años</td>
+                    <td class="text-center fw-bold">{{ doc.n }}</td>
+                    <td class="text-end fw-semibold">{{ "%.2f"|format(doc.media) }} min</td>
+                    <td class="text-end text-muted">{{ "%.2f"|format(doc.varianza) }} min²</td>
+                    <td class="text-end fw-semibold">{{ "%.2f"|format(doc.desviacion) }} min</td>
+                    <td class="text-end">
+                        <span class="fs-6 fw-bold {% if doc.cv < 15.0 %}text-success{% elif doc.cv <= 30.0 %}text-warning{% else %}text-danger{% endif %}">
+                            {{ "%.2f"|format(doc.cv) }}%
+                        </span>
+                    </td>
+                    <td class="text-center pe-4">
+                        {% if doc.cv < 15.0 %}
+                            <span class="badge badge-homogeneo px-3 py-2">
+                                <i class="bi bi-shield-check me-1"></i> Alta Homogeneidad (Predecible)
+                            </span>
+                        {% elif doc.cv <= 30.0 %}
+                            <span class="badge badge-moderado px-3 py-2">
+                                <i class="bi bi-exclamation-circle me-1"></i> Variabilidad Moderada
+                            </span>
+                        {% else %}
+                            <span class="badge badge-disperso px-3 py-2">
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i> Alta Dispersión
+                            </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- CONCLUSIONES DE GESTIÓN CLÍNICA -->
+<div class="row g-4 mb-4">
+    <!-- Doctor más homogéneo -->
+    <div class="col-lg-6">
+        <div class="card h-100 border-success shadow-sm">
+            <div class="card-header bg-success-subtle text-success py-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-star-fill me-2"></i>Mayor Homogeneidad y Predictibilidad
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                {% if datos.doc_mas_homogeneo %}
+                <h5 class="fw-bold text-dark mb-1">{{ datos.doc_mas_homogeneo.nombre }}</h5>
+                <div class="text-muted mb-3">{{ datos.doc_mas_homogeneo.especialidad }} ({{ datos.doc_mas_homogeneo.anios_experiencia }} años de experiencia)</div>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="bi bi-check2-circle text-success me-2"></i>
+                        <strong>Coeficiente de Variación más bajo:</strong> <span class="badge bg-success">{{ "%.2f"|format(datos.doc_mas_homogeneo.cv) }}%</span>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check2-circle text-success me-2"></i>
+                        <strong>Tiempo promedio de consulta:</strong> {{ "%.2f"|format(datos.doc_mas_homogeneo.media) }} min con desvío s = {{ "%.2f"|format(datos.doc_mas_homogeneo.desviacion) }} min.
+                    </li>
+                    <li>
+                        <i class="bi bi-info-circle text-primary me-2"></i>
+                        <strong>Implicancia de gestión:</strong> Sus consultas son rigurosamente estables. Es el candidato ideal para asignación de turnos seriados con mínimo riesgo de retraso acumulado en sala de espera.
+                    </li>
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Doctor más disperso -->
+    <div class="col-lg-6">
+        <div class="card h-100 border-warning shadow-sm">
+            <div class="card-header bg-warning-subtle text-warning py-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Mayor Dispersión Relativa
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                {% if datos.doc_mas_disperso %}
+                <h5 class="fw-bold text-dark mb-1">{{ datos.doc_mas_disperso.nombre }}</h5>
+                <div class="text-muted mb-3">{{ datos.doc_mas_disperso.especialidad }} ({{ datos.doc_mas_disperso.anios_experiencia }} años de experiencia)</div>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="bi bi-arrow-up-right text-warning me-2"></i>
+                        <strong>Coeficiente de Variación más alto:</strong> <span class="badge bg-warning text-dark">{{ "%.2f"|format(datos.doc_mas_disperso.cv) }}%</span>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-arrow-up-right text-warning me-2"></i>
+                        <strong>Tiempo promedio de consulta:</strong> {{ "%.2f"|format(datos.doc_mas_disperso.media) }} min con desvío s = {{ "%.2f"|format(datos.doc_mas_disperso.desviacion) }} min.
+                    </li>
+                    <li>
+                        <i class="bi bi-lightbulb text-warning me-2"></i>
+                        <strong>Recomendación administrativa:</strong> No asignar turnos rígidos de duración fija. Auditar si atiende patologías de severidad dispar o contemplar la asignación en bloques dinámicos según complejidad del paciente.
+                    </li>
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

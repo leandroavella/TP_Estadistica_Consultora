@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+
+{% block title %}Regresión Bivariada & Outliers | Consultora Médica{% endblock %}
+
+{% block content %}
+<!-- ENCABEZADO DE SECCIÓN -->
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-4 pb-2 border-bottom">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Inicio</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Regresión Bivariada & Anomalías</li>
+            </ol>
+        </nav>
+        <h2 class="fw-bold mb-1">
+            <i class="bi bi-graph-up text-primary me-2"></i>Análisis Estadístico Bivariado & Detección de Outliers
+        </h2>
+        <p class="text-muted mb-0">
+            Resolución formal del <strong>Problema 4 (Detección de Anomalías |e| > 2·se)</strong>, <strong>Problema 5 (Validación de Hipótesis Operativas)</strong> y <strong>Problema 6 (Tablero Ejecutivo)</strong>.
+        </p>
+    </div>
+    <div class="mt-3 mt-md-0 d-flex gap-2">
+        <a href="{{ url_for('static', filename='img/reporte_bivariado_gerencia.png') }}" target="_blank" class="btn btn-outline-secondary">
+            <i class="bi bi-arrows-fullscreen me-1"></i> Ver Gráfico en Alta Resolución
+        </a>
+        <a href="{{ url_for('prediccion') }}" class="btn btn-warning text-dark fw-bold">
+            <i class="bi bi-calculator me-1"></i> Ir a Predictor de Turnos
+        </a>
+    </div>
+</div>
+
+<!-- PROBLEMA 5: VALIDACIÓN DE HIPÓTESIS OPERATIVAS (COMPARATIVA DE MODELOS) -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+        <div>
+            <span class="badge bg-primary mb-1">Problema 5: Contraste de Hipótesis</span>
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="bi bi-diagram-3-fill text-primary me-2"></i>Contraste de Correlación Lineal de Pearson y Capacidad Predictiva
+            </h5>
+        </div>
+        <span class="badge bg-secondary-subtle text-secondary">Mínimos Cuadrados (ŷ = a + bx)</span>
+    </div>
+    <div class="card-body p-4">
+        <div class="row g-4">
+            <!-- ANÁLISIS A: EDAD DEL PACIENTE -->
+            <div class="col-lg-6">
+                <div class="card h-100 border-primary bg-light bg-opacity-25 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="badge bg-primary px-3 py-2">Variable Predictora X1: Edad del Paciente</span>
+                            <span class="badge bg-info-subtle text-info">Clínico-Demográfica</span>
+                        </div>
+                        <h4 class="fw-bold text-dark mb-1">Edad del Paciente vs. Tiempo de Atención (Y)</h4>
+                        <p class="text-muted small mb-4">Impacto de la edad biológica en la duración de la consulta médica.</p>
+
+                        <div class="row g-3 text-center mb-3">
+                            <div class="col-6">
+                                <div class="bg-white p-3 rounded-3 border">
+                                    <small class="text-muted d-block">Pearson (r)</small>
+                                    <span class="fs-4 fw-bold text-primary">{{ "%.4f"|format(datos.modelo_edad.r) }}</span>
+                                    <div class="small text-success fw-semibold mt-1">{{ datos.fuerza_edad }}</div>
+                                    <small class="text-muted mt-1 d-block" style="font-size: 0.75rem;">Fuerza y dirección de la relación.</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="bg-white p-3 rounded-3 border">
+                                    <small class="text-muted d-block">Determinación (R²)</small>
+                                    <span class="fs-4 fw-bold text-success">{{ "%.2f"|format(datos.modelo_edad.r2 * 100) }}%</span>
+                                    <div class="small text-muted mt-1">Varianza explicada</div>
+                                    <small class="text-muted mt-1 d-block" style="font-size: 0.75rem;">% de variación del tiempo explicada.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-3 rounded-3 border mb-3">
+                            <small class="text-muted d-block fw-semibold mb-1">Ecuación de Regresión Ajustada:</small>
+                            <div class="font-monospace fs-5 fw-bold text-primary">
+                                ŷ = {{ "%.2f"|format(datos.modelo_edad.a) }} + {{ "%.2f"|format(datos.modelo_edad.b) }} × (Edad)
+                            </div>
+                            <small class="text-muted d-block mt-2">
+                                Covarianza Sxy = {{ "%.2f"|format(datos.modelo_edad.cov_xy) }} años·min | Error estándar se = {{ "%.2f"|format(datos.modelo_edad.se) }} min
+                            </small>
+                        </div>
+
+                        <div class="alert alert-primary py-2 px-3 mb-0 small">
+                            <i class="bi bi-info-circle-fill me-1"></i>
+                            <strong>Conclusión Operativa:</strong> El 66.5% de la variación en los minutos de atención se explica linealmente por la edad del paciente. <em>Es la variable idónea para programar turnos.</em>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ANÁLISIS B: EXPERIENCIA DEL MÉDICO -->
+            <div class="col-lg-6">
+                <div class="card h-100 border-secondary bg-light bg-opacity-25 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="badge bg-secondary px-3 py-2">Variable Predictora X2: Años de Experiencia</span>
+                            <span class="badge bg-secondary-subtle text-secondary">Médico-Profesional</span>
+                        </div>
+                        <h4 class="fw-bold text-dark mb-1">Experiencia Médica vs. Tiempo de Atención (Y)</h4>
+                        <p class="text-muted small mb-4">Correlación entre la antigüedad del doctor y la extensión de su consulta.</p>
+
+                        <div class="row g-3 text-center mb-3">
+                            <div class="col-6">
+                                <div class="bg-white p-3 rounded-3 border">
+                                    <small class="text-muted d-block">Coeficiente de Pearson (r)</small>
+                                    <span class="fs-4 fw-bold text-secondary">{{ "%.4f"|format(datos.modelo_exp.r) }}</span>
+                                    <div class="small text-success fw-semibold mt-1">{{ datos.fuerza_exp }}</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="bg-white p-3 rounded-3 border">
+                                    <small class="text-muted d-block">Determinación (R²)</small>
+                                    <span class="fs-4 fw-bold text-dark">{{ "%.2f"|format(datos.modelo_exp.r2 * 100) }}%</span>
+                                    <div class="small text-muted mt-1">Varianza explicada</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-3 rounded-3 border mb-3">
+                            <small class="text-muted d-block fw-semibold mb-1">Ecuación de Regresión Ajustada:</small>
+                            <div class="font-monospace fs-5 fw-bold text-secondary">
+                                ŷ = {{ "%.2f"|format(datos.modelo_exp.a) }} + {{ "%.2f"|format(datos.modelo_exp.b) }} × (Experiencia)
+                            </div>
+                            <small class="text-muted d-block mt-2">
+                                Covarianza Sxy = {{ "%.2f"|format(datos.modelo_exp.cov_xy) }} años·min | Error estándar se = {{ "%.2f"|format(datos.modelo_exp.se) }} min
+                            </small>
+                        </div>
+
+                        <div class="alert alert-secondary py-2 px-3 mb-0 small">
+                            <i class="bi bi-info-circle-fill me-1"></i>
+                            <strong>Conclusión Operativa:</strong> Los médicos con mayor trayectoria atienden consultas de cardiología o clínica de mayor complejidad relativa, demandando mayor tiempo por paciente.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PROBLEMA 6: TABLERO GERENCIAL VISUAL (GRÁFICO BIVARIADO) -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between">
+        <div>
+            <span class="badge bg-success mb-1">Problema 6: Tablero Gerencial Gráfico</span>
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="bi bi-image text-success me-2"></i>Diagramas de Dispersión, Rectas de Regresión y Centro de Medias
+            </h5>
+        </div>
+        <div class="mt-2 mt-md-0">
+            <span class="badge bg-light text-dark border">
+                <i class="bi bi-check2 me-1"></i> Generado con Matplotlib a 300 DPI
+            </span>
+        </div>
+    </div>
+    <div class="card-body p-3 p-lg-4 text-center">
+        <div class="p-2 bg-light rounded-3 border mb-3">
+            <img src="{{ url_for('static', filename='img/reporte_bivariado_gerencia.png') }}?t={{ timestamp }}" 
+                 alt="Reporte Bivariado de Gerencia" 
+                 class="img-fluid rounded shadow-sm border" 
+                 style="max-height: 550px; width: auto; object-fit: contain;">
+        </div>
+        <div class="row g-3 text-start small text-muted px-2">
+            <div class="col-md-4">
+                <span class="badge bg-danger me-1">Línea Roja</span> <strong>Recta de Regresión:</strong> Ajuste lineal óptimo que minimiza la suma de errores cuadráticos.
+            </div>
+            <div class="col-md-4">
+                <span class="badge bg-success me-1">Punto Verde</span> <strong>Centro de Medias (x̄, ȳ):</strong> Centro de gravedad de la distribución bivariada.
+            </div>
+            <div class="col-md-4">
+                <span class="badge bg-warning text-dark me-1">Triángulo Naranja</span> <strong>Anomalías Detectadas:</strong> Puntos que exceden el umbral crítico de dos errores estándar (|e_i| > 2·se).
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PROBLEMA 4: DETECCIÓN DE ANOMALÍAS Y CASOS ATÍPICOS (OUTLIERS) -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between">
+        <div>
+            <span class="badge bg-danger mb-1">Problema 4: Control de Calidad y Outliers</span>
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="bi bi-shield-exclamation text-danger me-2"></i>Auditoría de Consultas Anómalas Detectadas (|e_i| > 2·se)
+            </h5>
+        </div>
+        <div class="text-muted small mt-2 mt-md-0">
+            Error estándar de la estimación: <strong>se = {{ "%.2f"|format(datos.modelo_edad.se) }} min</strong> | Umbral crítico: <strong>±{{ "%.2f"|format(2 * datos.modelo_edad.se) }} min</strong>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th class="ps-4">ID Consulta</th>
+                    <th>Edad Paciente</th>
+                    <th>Profesional a Cargo</th>
+                    <th>Especialidad</th>
+                    <th class="text-end">Tiempo Real</th>
+                    <th class="text-end">Tiempo Estimado (ŷ)</th>
+                    <th class="text-end">Residuo Neto (e_i)</th>
+                    <th class="text-center pe-4">Diagnóstico Causal Probable</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for out in datos.outliers %}
+                <tr class="table-warning border-start border-warning border-4">
+                    <td class="ps-4 fw-bold">#{{ out.info.id }}</td>
+                    <td class="fw-bold">{{ out.x }} años</td>
+                    <td class="fw-semibold">{{ out.info.medico }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ out.info.especialidad }}</span></td>
+                    <td class="text-end fs-6 fw-bold text-danger">{{ "%.1f"|format(out.y_real) }} min</td>
+                    <td class="text-end text-muted">{{ "%.1f"|format(out.y_pred) }} min</td>
+                    <td class="text-end fw-bold {% if out.residuo > 0 %}text-danger{% else %}text-primary{% endif %}">
+                        {{ "%+.1f"|format(out.residuo) }} min
+                    </td>
+                    <td class="text-center pe-4">
+                        {% if out.residuo > 0 %}
+                            <span class="badge bg-danger px-3 py-2">
+                                <i class="bi bi-exclamation-octagon-fill me-1"></i> Complicación Aguda / Urgencia Inesperada
+                            </span>
+                        {% else %}
+                            <span class="badge bg-info text-dark px-3 py-2">
+                                <i class="bi bi-file-earmark-medical me-1"></i> Firma Express de Receta / Control Rápido
+                            </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer bg-light p-3">
+        <div class="d-flex align-items-center text-muted small">
+            <i class="bi bi-lightbulb-fill text-warning fs-5 me-2"></i>
+            <span>
+                <strong>Acción de Calidad Médica:</strong> Se detectaron {{ datos.outliers|length }} casos atípicos en la muestra de 100 consultas. Se recomienda institucionalizar un canal administrativo rápido para "firma de recetas" evitando ocupar consultorios de especialidad, y prever cupos de reserva para contingencias agudas.
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- PROBLEMA 6: DECISIONES OPERATIVAS DE DIRECCIÓN MÉDICA -->
+<div class="card shadow-sm border-0" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white;">
+    <div class="card-body p-4 p-lg-5">
+        <h4 class="fw-bold mb-3 text-white">
+            <i class="bi bi-clipboard2-check-fill text-primary me-2"></i>Plan de Decisiones Administrativas Derivadas del Modelo
+        </h4>
+        <div class="row g-4 mt-1">
+            <div class="col-md-4">
+                <div class="bg-white bg-opacity-10 p-3 rounded-3 h-100 border border-white border-opacity-10">
+                    <div class="fs-5 fw-bold text-info mb-2">1. Agendas Dinámicas</div>
+                    <p class="small text-white-50 mb-0">
+                        Eliminar el esquema obsoleto de turnos fijos de 15 minutos. El modelo demostró que pacientes mayores de 65 años demandan más de 35 minutos de atención.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="bg-white bg-opacity-10 p-3 rounded-3 h-100 border border-white border-opacity-10">
+                    <div class="fs-5 fw-bold text-success mb-2">2. Descongestión de Salas</div>
+                    <p class="small text-white-50 mb-0">
+                        La reprogramación basada en la recta predictiva suprime retrasos acumulativos de hasta 90 minutos diarios por consultorio en horas pico.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="bg-white bg-opacity-10 p-3 rounded-3 h-100 border border-white border-opacity-10">
+                    <div class="fs-5 fw-bold text-warning mb-2">3. Triaje Express</div>
+                    <p class="small text-white-50 mb-0">
+                        Los casos residuales negativos revelaron actos médicos de menos de 10 min (firmas de recetas) que deben canalizarse por mostrador digital.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

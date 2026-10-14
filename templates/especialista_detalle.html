@@ -1,0 +1,40 @@
+<!-- COLUMNA IZQUIERDA: PARÁMETROS DEL MODELO DE REGRESIÓN DEL DOCTOR -->
+    <div class="col-lg-5">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-dark text-white py-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-graph-up-arrow me-2"></i>Modelo de Regresión Lineal
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                {% if reg and reg.modelo_edad %}
+                <p class="text-muted small mb-3">Parámetros obtenidos por mínimos cuadrados ordinarios (MCO) para el especialista:</p>
+                
+                <ul class="list-group list-group-flush mb-4 small">
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span>Ordenada al origen (a):</span>
+                        <strong>{{ "%.2f"|format(reg.modelo_edad.a) }}</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span>Pendiente (b):</span>
+                        <strong>{{ "%.2f"|format(reg.modelo_edad.b) }}</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span>Coeficiente de Correlación (r):</span>
+                        <strong class="text-primary">{{ "%.4f"|format(reg.modelo_edad.r) }}</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span>Coeficiente de Determinación (R²):</span>
+                        <strong class="text-success">{{ "%.2f"|format(reg.modelo_edad.r2 * 100) }}%</strong>
+                    </li>
+                </ul>
+
+                <div class="alert alert-light border small mb-0">
+                    <strong>Interpretación:</strong> El modelo explica el <strong>{{ "%.1f"|format(reg.modelo_edad.r2 * 100) }}%</strong> de la variabilidad en los tiempos de atención del doctor en función de la edad del paciente.
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No hay suficientes registros bivariados para este especialista.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
