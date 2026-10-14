@@ -1,0 +1,365 @@
+{% extends "base.html" %}
+
+{% block title %}Predictor Dinámico de Turnos | Consultora Médica{% endblock %}
+
+{% block content %}
+<!-- ENCABEZADO DE SECCIÓN -->
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-4 pb-2 border-bottom">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Inicio</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Predictor de Turnos</li>
+            </ol>
+        </nav>
+        <h2 class="fw-bold mb-1">
+            <i class="bi bi-clock-history text-warning me-2"></i>Módulo Interactivo de Predicción y Dimensionamiento de Agendas
+        </h2>
+        <p class="text-muted mb-0">
+            Resolución formal del <strong>Problema 2: Predicción de Demanda</strong> aplicando la ecuación de regresión por Mínimos Cuadrados en tiempo real.
+        </p>
+    </div>
+    <div class="mt-3 mt-md-0">
+        <a href="{{ url_for('regresion') }}" class="btn btn-outline-primary">
+            <i class="bi bi-graph-up me-1"></i> Ver Recta y Coeficientes
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- COLUMNA IZQUIERDA: FORMULARIO INTERACTIVO -->
+    <div class="col-lg-5">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white py-3 border-bottom">
+                <span class="badge bg-warning text-dark mb-1">Simulador Operativo en Tiempo Real</span>
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-person-fill-gear text-warning me-2"></i>Parámetros del Nuevo Paciente
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form id="formPrediccion" method="POST" action="{{ url_for('prediccion') }}">
+                    <!-- INPUT DE EDAD -->
+                    <div class="mb-4">
+                        <label for="edad_paciente" class="form-label fw-bold text-dark d-flex justify-content-between">
+                            <span>Edad del Paciente [X1] (Años):</span>
+                            <span id="edadBadge" class="badge bg-primary fs-6">{{ edad_inicial }} años</span>
+                        </label>
+                        
+                        <div class="input-group input-group-lg mb-3">
+                            <span class="input-group-text bg-light"><i class="bi bi-person-bounding-box text-primary"></i></span>
+                            <input type="number" 
+                                   class="form-control fw-bold" 
+                                   id="edad_paciente" 
+                                   name="edad_paciente" 
+                                   min="1" 
+                                   max="110" 
+                                   value="{{ edad_inicial }}" 
+                                   required>
+                            <span class="input-group-text bg-light text-muted">años</span>
+                        </div>
+
+                        <!-- SLIDER INTERACTIVO -->
+                        <label for="edadSlider" class="form-label text-muted small mb-1">Ajuste rápido mediante control deslizante:</label>
+                        <input type="range" class="form-range" id="edadSlider" min="1" max="100" value="{{ edad_inicial }}">
+                        <div class="d-flex justify-content-between text-muted small">
+                            <span>1 año (Pediatría)</span>
+                            <span>50 años</span>
+                            <span>100 años (Gerontología)</span>
+                        </div>
+                    </div>
+
+                    <!-- BOTONES DE PERFILES CLÍNICOS RÁPIDOS -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-secondary small text-uppercase">Cargar Perfiles Típicos de Demanda:</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-info text-dark btn-preset" data-edad="8">
+                                <i class="bi bi-emoji-smile me-1"></i> Pediátrico (8a)
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-primary btn-preset" data-edad="25">
+                                <i class="bi bi-person me-1"></i> Adulto Joven (25a)
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-success btn-preset" data-edad="45">
+                                <i class="bi bi-person-badge me-1"></i> Adulto (45a)
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger btn-preset" data-edad="65">
+                                <i class="bi bi-person-heart me-1"></i> Adulto Mayor (65a)
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-dark btn-preset" data-edad="80">
+                                <i class="bi bi-heart-pulse me-1"></i> Geriátrico (80a)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- MODELO MATEMÁTICO SUBYACENTE -->
+                    <div class="p-3 bg-light rounded-3 border mb-3">
+                        <small class="text-muted d-block fw-semibold mb-1">Ecuación Predictiva Activa:</small>
+                        <div class="font-monospace text-primary fw-bold" id="ecuacionTexto">
+                            ŷ = {{ "%.2f"|format(modelo.a) }} + {{ "%.2f"|format(modelo.b) }} × (Edad)
+                        </div>
+                        <small class="text-muted d-block mt-1">
+                            Bondad de ajuste: R² = {{ "%.2f"|format(modelo.r2 * 100) }}% | Pearson r = {{ "%.4f"|format(modelo.r) }}
+                        </small>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-warning text-dark fw-bold py-2">
+                            <i class="bi bi-arrow-repeat me-1"></i> Recalcular y Confirmar Asignación
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: RESULTADO EN TIEMPO REAL & BLOQUE SUGERIDO -->
+    <div class="col-lg-7">
+        <div class="card shadow-sm h-100 border-warning border-2">
+            <div class="card-header bg-warning bg-opacity-10 py-3 border-bottom d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="badge bg-warning text-dark mb-1">Resultado de Programación Dinámica</span>
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-stopwatch text-warning me-2"></i>Estimación y Bloque Recomendado de Agenda
+                    </h5>
+                </div>
+                <span id="badgePerfilLive" class="badge bg-success px-3 py-2 fs-6">
+                    Adulto General
+                </span>
+            </div>
+
+            <div class="card-body p-4">
+                <!-- TARJETAS DE RESULTADO PRINCIPAL -->
+                <div class="row g-3 mb-4">
+                    <!-- Tiempo Estimado ŷ -->
+                    <div class="col-md-6">
+                        <div class="p-4 bg-light rounded-4 border text-center h-100">
+                            <span class="text-muted small text-uppercase fw-semibold d-block mb-1">
+                                Tiempo Estimado de Consulta (ŷ)
+                            </span>
+                            <div class="display-5 fw-bold text-primary mb-1">
+                                <span id="tiempoEstimadoLive">25.94</span>
+                                <small class="fs-4 text-muted">min</small>
+                            </div>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1">
+                                Valor Esperado Puntual
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Bloque de Agenda Sugerido -->
+                    <div class="col-md-6">
+                        <div class="p-4 rounded-4 border text-center h-100 text-white" style="background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);">
+                            <span class="text-white-50 small text-uppercase fw-semibold d-block mb-1">
+                                Bloque de Turno Sugerido
+                            </span>
+                            <div class="display-5 fw-bold text-white mb-1">
+                                <span id="bloqueAgendaLive">35</span>
+                                <small class="fs-4 text-white-50">min</small>
+                            </div>
+                            <span class="badge bg-white text-dark px-3 py-1 fw-bold">
+                                Con Colchón de Seguridad (+5 min)
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DESGLOSE OPERATIVO -->
+                <div class="card border-0 bg-light p-3 mb-4">
+                    <h6 class="fw-bold text-dark mb-2">
+                        <i class="bi bi-info-circle-fill text-primary me-2"></i>Detalle de Desglose Matemático
+                    </h6>
+                    <div class="row g-2 small">
+                        <div class="col-sm-6">
+                            <span class="text-muted">Fórmula evaluada:</span>
+                            <div class="font-monospace fw-bold text-dark mt-1" id="formulaDesgloseLive">
+                                ŷ = 12.23 + 0.30 × (45) = 25.94 min
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted">Criterio de agenda:</span>
+                            <div class="fw-semibold text-dark mt-1">
+                                Redondeo a múltiplos de 5 min con 5 min de resguardo
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3 pt-2 border-top">
+                        <div class="small text-muted" id="notaClinicaLive">
+                            Control clínico rutinario, estudios complementarios y manejo de factores de riesgo.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COMPARATIVA ANTES VS DESPUÉS -->
+                <h6 class="fw-bold text-dark mb-2">Impacto Administrativo: ¿Por qué es crucial este módulo?</h6>
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="p-3 border rounded-3 bg-danger bg-opacity-10 border-danger border-opacity-25 h-100">
+                            <div class="fw-bold text-danger mb-1"><i class="bi bi-x-circle me-1"></i> Modelo Antiguo (Turnos Fijos)</div>
+                            <small class="text-muted d-block">
+                                Turnos rígidos de 15 minutos para todos los pacientes. Provoca acumulación de demoras en sala de espera de hasta <strong>90 minutos diarios</strong>.
+                            </small>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="p-3 border rounded-3 bg-success bg-opacity-10 border-success border-opacity-25 h-100">
+                            <div class="fw-bold text-success mb-1"><i class="bi bi-check-circle me-1"></i> Modelo Dinámico Propuesto</div>
+                            <small class="text-muted d-block">
+                                Turnos modulados según la edad del paciente (ŷ). Minimiza tiempos muertos y <strong>elimina demoras en más del 85%</strong> de las jornadas.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TABLA DE BENCHMARK DE DEMANDA CLÍNICA -->
+<div class="card shadow-sm mt-4">
+    <div class="card-header bg-white py-3 border-bottom">
+        <h5 class="fw-bold mb-0 text-dark">
+            <i class="bi bi-table text-primary me-2"></i>Tabla de Referencia Rápida para Recepción y Agendamiento
+        </h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th class="ps-4">Grupo Etario</th>
+                    <th>Edad Típica (X1)</th>
+                    <th>Tiempo Estimado (ŷ)</th>
+                    <th>Margen de Seguridad</th>
+                    <th>Bloque Sugerido</th>
+                    <th class="pe-4">Estrategia de Recepción</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="ps-4"><span class="badge bg-info text-dark">Pediátrico</span></td>
+                    <td class="fw-bold">8 años</td>
+                    <td>14.67 min</td>
+                    <td>+5 min</td>
+                    <td><span class="badge bg-dark fs-6">20 min</span></td>
+                    <td class="pe-4 text-muted small">Anamnesis pediátrica y control de percentiles.</td>
+                </tr>
+                <tr>
+                    <td class="ps-4"><span class="badge bg-primary">Adulto Joven</span></td>
+                    <td class="fw-bold">25 años</td>
+                    <td>19.85 min</td>
+                    <td>+5 min</td>
+                    <td><span class="badge bg-dark fs-6">25 min</span></td>
+                    <td class="pe-4 text-muted small">Chequeo estándar, certificados médicos y apto físico.</td>
+                </tr>
+                <tr>
+                    <td class="ps-4"><span class="badge bg-success">Adulto</span></td>
+                    <td class="fw-bold">45 años</td>
+                    <td>25.94 min</td>
+                    <td>+5 min</td>
+                    <td><span class="badge bg-dark fs-6">35 min</span></td>
+                    <td class="pe-4 text-muted small">Controles clínicos, laboratorio y factores cardiovasculares.</td>
+                </tr>
+                <tr>
+                    <td class="ps-4"><span class="badge bg-warning text-dark">Adulto Mayor</span></td>
+                    <td class="fw-bold">65 años</td>
+                    <td>32.04 min</td>
+                    <td>+5 min</td>
+                    <td><span class="badge bg-dark fs-6">40 min</span></td>
+                    <td class="pe-4 text-muted small">Atención de patologías crónicas y ajuste de medicación.</td>
+                </tr>
+                <tr>
+                    <td class="ps-4"><span class="badge bg-danger">Geriátrico</span></td>
+                    <td class="fw-bold">80 años</td>
+                    <td>36.61 min</td>
+                    <td>+5 min</td>
+                    <td><span class="badge bg-dark fs-6">45 min</span></td>
+                    <td class="pe-4 text-muted small">Alta complejidad, movilidad reducida y polifarmacia.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const edadInput = document.getElementById("edad_paciente");
+    const edadSlider = document.getElementById("edadSlider");
+    const edadBadge = document.getElementById("edadBadge");
+    const tiempoEstimadoLive = document.getElementById("tiempoEstimadoLive");
+    const bloqueAgendaLive = document.getElementById("bloqueAgendaLive");
+    const badgePerfilLive = document.getElementById("badgePerfilLive");
+    const formulaDesgloseLive = document.getElementById("formulaDesgloseLive");
+    const notaClinicaLive = document.getElementById("notaClinicaLive");
+    const presetBtns = document.querySelectorAll(".btn-preset");
+
+    const a = {{ modelo.a }};
+    const b = {{ modelo.b }};
+
+    function calcularEnVivo(edad) {
+        edad = parseFloat(edad);
+        if (isNaN(edad) || edad < 0) return;
+
+        edadBadge.textContent = Math.round(edad) + " años";
+
+        // Cálculo client-side instantáneo reactivo
+        const y_est = a + (b * edad);
+        const margen = 5.0;
+        const bloque = Math.ceil((y_est + margen) / 5.0) * 5;
+
+        tiempoEstimadoLive.textContent = y_est.toFixed(2);
+        bloqueAgendaLive.textContent = bloque;
+
+        let perfil = "Adulto General";
+        let badgeClass = "badge bg-success px-3 py-2 fs-6";
+        let nota = "Control clínico rutinario, estudios complementarios y manejo de factores de riesgo.";
+
+        if (edad < 15) {
+            perfil = "Pediátrico";
+            badgeClass = "badge bg-info text-dark px-3 py-2 fs-6";
+            nota = "Atención pediátrica con evaluación antropométrica y anamnesis familiar.";
+        } else if (edad < 35) {
+            perfil = "Adulto Joven";
+            badgeClass = "badge bg-primary px-3 py-2 fs-6";
+            nota = "Consulta estándar para certificados, controles anuales o patologías agudas leves.";
+        } else if (edad < 60) {
+            perfil = "Adulto General";
+            badgeClass = "badge bg-success px-3 py-2 fs-6";
+            nota = "Control clínico rutinario, estudios complementarios y manejo de factores de riesgo.";
+        } else {
+            perfil = "Adulto Mayor / Gerontológico";
+            badgeClass = "badge bg-danger px-3 py-2 fs-6";
+            nota = "Atención de alta complejidad con polimedicación y múltiples comorbilidades crónicas.";
+        }
+
+        badgePerfilLive.textContent = perfil;
+        badgePerfilLive.className = badgeClass;
+        notaClinicaLive.textContent = nota;
+        formulaDesgloseLive.textContent = `ŷ = ${a.toFixed(2)} + ${b.toFixed(2)} × (${Math.round(edad)}) = ${y_est.toFixed(2)} min`;
+    }
+
+    // Sincronización entre input y slider
+    edadInput.addEventListener("input", function () {
+        edadSlider.value = this.value;
+        calcularEnVivo(this.value);
+    });
+
+    edadSlider.addEventListener("input", function () {
+        edadInput.value = this.value;
+        calcularEnVivo(this.value);
+    });
+
+    // Botones de presets rápidos
+    presetBtns.forEach(btn => {
+        btn.addEventListener("click", function () {
+            const edad = this.getAttribute("data-edad");
+            edadInput.value = edad;
+            edadSlider.value = edad;
+            calcularEnVivo(edad);
+        });
+    });
+
+    // Ejecutar cálculo inicial
+    calcularEnVivo(edadInput.value);
+});
+</script>
+{% endblock %}

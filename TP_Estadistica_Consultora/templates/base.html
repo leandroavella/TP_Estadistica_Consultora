@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Consultora Médica | Tablero Gerencial{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --cm-primary: #0d6efd;
+            --cm-primary-dark: #0a58ca;
+            --cm-secondary: #0dcaf0;
+            --cm-dark: #1e293b;
+            --cm-light-bg: #f8fafc;
+            --cm-card-border: #e2e8f0;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--cm-light-bg);
+            color: #334155;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .nav-link {
+            font-weight: 500;
+            transition: color 0.15s ease-in-out;
+        }
+        .nav-link.active {
+            color: #fff !important;
+            font-weight: 600;
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+        }
+        .card {
+            border: 1px solid var(--cm-card-border);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+        }
+        .stat-card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        .badge-homogeneo {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+        .badge-moderado {
+            background-color: #fef9c3;
+            color: #854d0e;
+            border: 1px solid #fef08a;
+        }
+        .badge-disperso {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        .badge-outlier {
+            background-color: #ffedd5;
+            color: #9a3412;
+            border: 1px solid #fed7aa;
+        }
+        .table thead th {
+            background-color: #f1f5f9;
+            color: #475569;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-weight: 600;
+            border-bottom: 2px solid #cbd5e1;
+        }
+        .table-hover tbody tr:hover {
+            background-color: #f8fafc;
+        }
+        .hero-banner {
+            background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%);
+            color: white;
+            border-radius: 16px;
+        }
+        footer {
+            margin-top: auto;
+            background-color: #0f172a;
+            color: #94a3b8;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    <!-- NAVBAR PRINCIPAL -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm py-2" style="background-color: #0f172a !important;">
+        <div class="container-fluid px-lg-5">
+            <a class="navbar-brand d-flex align-items-center text-white" href="{{ url_for('index') }}">
+                <span class="stat-card-icon bg-primary text-white me-2" style="width: 36px; height: 36px; font-size: 1.2rem;">
+                    <i class="bi bi-heart-pulse-fill"></i>
+                </span>
+                <span>Consultora Médica</span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContenido">
+                <span class="navbar-toggler-soft"><i class="bi bi-list fs-3 text-white"></i></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarContenido">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3">
+                    <li class="nav-item">
+                        <a class="nav-link px-3 {% if request.endpoint == 'index' %}active{% endif %}" href="{{ url_for('index') }}">
+                            <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3 {% if request.endpoint == 'turnos' %}active{% endif %}" href="{{ url_for('turnos') }}">
+                            <i class="bi bi-calendar-check me-1"></i> Turnos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3 {% if request.endpoint in ['especialistas', 'especialista_detalle'] %}active{% endif %}" href="{{ url_for('especialistas') }}">
+                            <i class="bi bi-person-workspace me-1"></i> Especialistas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3 {% if request.endpoint == 'descriptiva' %}active{% endif %}" href="{{ url_for('descriptiva') }}">
+                            <i class="bi bi-bar-chart-line me-1"></i> Descriptiva (CV)
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3 {% if request.endpoint == 'regresion' %}active{% endif %}" href="{{ url_for('regresion') }}">
+                            <i class="bi bi-graph-up-arrow me-1"></i> Regresión & Outliers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3 {% if request.endpoint == 'prediccion' %}active{% endif %}" href="{{ url_for('prediccion') }}">
+                            <i class="bi bi-clock-history me-1"></i> Predictor
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2 d-flex align-items-center">
+                        <span class="spinner-grow spinner-grow-sm me-2" role="status" style="width: 8px; height: 8px;"></span>
+                        MariaDB Online (n = 100)
+                    </span>
+                    <a href="{{ url_for('regresion') }}" class="btn btn-sm btn-outline-info text-white">
+                        <i class="bi bi-image me-1"></i> Gráfico Gerencial
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MENSAJES FLASH -->
+    <div class="container-fluid px-lg-5 mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                        <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="container-fluid px-lg-5 my-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="py-4 border-top border-secondary border-opacity-25">
+        <div class="container-fluid px-lg-5">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start">
+                        <i class="bi bi-hospital fs-5 text-primary me-2"></i>
+                        <span class="text-white fw-semibold">Consultora Médica - Auditoría Operativa</span>
+                    </div>
+                    <small class="text-secondary d-block mt-1">
+                        Trabajo Práctico Integrador de Estadística Bivariada | MariaDB + Python + Flask
+                    </small>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <span class="badge bg-secondary-subtle text-secondary me-2">Modelo Mínimos Cuadrados</span>
+                    <span class="badge bg-secondary-subtle text-secondary me-2">Correlación de Pearson</span>
+                    <span class="badge bg-secondary-subtle text-secondary">Control Residual ±2·se</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5.3 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

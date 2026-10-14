@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}Reserva de Turnos | Consultora Médica{% endblock %}
+
+{% block content %}
+<!-- ENCABEZADO DE SECCIÓN -->
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-4 pb-2 border-bottom">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Inicio</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Gestión de Turnos</li>
+            </ol>
+        </nav>
+        <h2 class="fw-bold mb-1">
+            <i class="bi bi-calendar2-check-fill text-primary me-2"></i>Módulo Operativo de Reserva de Turnos
+        </h2>
+        <p class="text-muted mb-0">
+            Simulación de agendamiento con estimación automatizada de duración de atención ($\hat{y}$) según el perfil del paciente y registro relacional en MariaDB.
+        </p>
+    </div>
+    <div class="mt-3 mt-md-0">
+        <a href="{{ url_for('especialistas') }}" class="btn btn-outline-primary">
+            <i class="bi bi-person-workspace me-1"></i> Ver Panel de Especialistas
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- COLUMNA IZQUIERDA: FORMULARIO DE RESERVA DE TURNO -->
+    <div class="col-lg-5">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-primary text-white py-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-plus-circle me-2"></i>Reservar Nuevo Turno
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('turnos') }}">
+                    <!-- NOMBRE DEL PACIENTE -->
+                    <div class="mb-3">
+                        <label for="nombre_paciente" class="form-label fw-semibold text-dark">Nombre y Apellido del Paciente:</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+                            <input type="text" class="form-control" id="nombre_paciente" name="nombre_paciente" placeholder="Ej. Ana Maria Martinez" required>
+                        </div>
+                    </div>
+
+                    <!-- EDAD DEL PACIENTE -->
+                    <div class="mb-3">
+                        <label for="edad_paciente" class="form-label fw-semibold text-dark">Edad del Paciente (Años):</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-balloon"></i></span>
+                            <input type="number" class="form-control" id="edad_paciente" name="edad_paciente" min="1" max="110" value="40" required>
+                            <span class="input-group-text bg-light">años</span>
+                        </div>
+                        <small class="text-muted">El modelo usará este valor para calcular $\hat{y}$ (duración estimada del turno).</small>
+                    </div>
+
+                    <!-- SELECCIÓN DE ESPECIALISTA -->
+                    <div class="mb-3">
+                        <label for="id_doctor" class="form-label fw-semibold text-dark">Médico Especialista:</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-stethoscope"></i></span>
+                            <select class="form-select" id="id_doctor" name="id_doctor" required>
+                                {% for doc in doctores %}
+                                    <option value="{{ doc.id_doctor }}">
+                                        {{ doc.nombre }} ({{ doc.especialidad }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- FECHA Y HORA -->
+                    <div class="row g-2 mb-4">
+                        <div class="col-6">
+                            <label for="fecha_turno" class="form-label fw-semibold text-dark">Fecha:</label>
+                            <input type="date" class="form-control" id="fecha_turno" name="fecha_turno" required>
+                        </div>
+                        <div class="col-6">
+                            <label for="hora_turno" class="form-label fw-semibold text-dark">Hora:</label>
+                            <input type="time" class="form-control" id="hora_turno" name="hora_turno" value="09:00" required>
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary fw-bold py-2">
+                            <i class="bi bi-check-circle-fill me-1"></i> Registrar Turno en MariaDB
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: TABLA DE TURNOS REGISTRADOS -->
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-journal-text text-primary me-2"></i>Turnos Programados en MariaDB
+                </h5>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                    {{ turnos|length }} Registros
+                </span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-3">Paciente</th>
+                            <th>Doctor & Especialidad</th>
+                            <th>Fecha & Hora</th>
+                            <th class="text-end">Est. ($\hat{y}$)</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-end pe-3">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if turnos %}
+                            {% for t in turnos %}
+                            <tr {% if t.estado == 'Cancelado' %}class="table-secondary text-muted"{% endif %}>
+                                <td class="ps-3">
+                                    <div class="fw-bold text-dark">{{ t.paciente }}</div>
+                                    <small class="text-muted">{{ t.edad }} años</small>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">{{ t.medico }}</div>
+                                    <small class="badge bg-light text-dark border">{{ t.especialidad }}</small>
+                                </td>
+                                <td>
+                                    <div><i class="bi bi-calendar3 me-1"></i>{{ t.fecha }}</div>
+                                    <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ t.hora }}</small>
+                                </td>
+                                <td class="text-end fw-bold text-primary">
+                                    {{ "%.1f"|format(t.tiempo_estimado) }} min
+                                </td>
+                                <td class="text-center">
+                                    {% if t.estado == 'Activo' %}
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Activo</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary px-2 py-1">Cancelado</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end pe-3">
+                                    {% if t.estado == 'Activo' %}
+                                    <form method="POST" action="{{ url_for('cancelar_turno', id_turno=t.id_turno) }}" onsubmit="return confirm('¿Está seguro de cancelar este turno?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Cancelar Turno">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <span class="text-muted small">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">
+                                    No hay turnos registrados en la base de datos.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // Establecer fecha de mañana por defecto en el input date
+    const fechaInput = document.getElementById("fecha_turno");
+    if (fechaInput && !fechaInput.value) {
+        const manana = new Date();
+        manana.setDate(manana.getDate() + 1);
+        fechaInput.value = manana.toISOString().split("T")[0];
+    }
+});
+</script>
+{% endblock %}
