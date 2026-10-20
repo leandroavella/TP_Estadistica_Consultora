@@ -17,6 +17,7 @@ import math
 import importlib
 import logging
 import db
+from utils.glosario import obtener_explicacion
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for, flash
@@ -371,12 +372,36 @@ def especialista_detalle(id_doctor):
 
         turnos_doc = obtener_turnos(id_doctor=id_doctor)
         metricas_doc = modulo_descriptiva.calcular_estadisticas_doctor(id_doctor, conexion=conexion)
+        reg_doc = modulo_regresion.obtener_regresion_doctor(id_doctor, conexion=conexion)
+        
+        # Calcular valores predichos y residuos para cada turno
+        if reg_doc and reg_doc.get("modelo_edad"):
+            a = reg_doc["modelo_edad"]["a"]
+            b = reg_doc["modelo_edad"]["b"]
+            for turno in turnos_doc:
+                if turno.get("edad") is not None and turno.get("tiempo_estimado") is not None:
+                    y_hat = a + (b * turno["edad"])
+                    turno["y_hat"] = round(y_hat, 2)
+                    turno["residuo"] = round(turno["tiempo_estimado"] - y_hat, 2)
+                else:
+                    turno["y_hat"] = None
+                    turno["residuo"] = None
+        
+        # Inyectar explicaciones del glosario
+        explicaciones = {
+            "media": obtener_explicacion("media"),
+            "desviacion_estandar": obtener_explicacion("desviacion_estandar"),
+            "coeficiente_variacion": obtener_explicacion("coeficiente_variacion"),
+            "r_cuadrado": obtener_explicacion("r_cuadrado")
+        }
 
         return render_template(
             "especialista_detalle.html",
             doctor={"id_doctor": doc[0], "nombre": doc[1], "especialidad": doc[2], "anios_experiencia": doc[3]},
             turnos=turnos_doc,
             metricas=metricas_doc,
+            reg=reg_doc,
+            explicaciones=explicaciones,
             ruta_grafico_doctor=f"img/reporte_doctor_{id_doctor}.png"
         )
     except Exception as e:

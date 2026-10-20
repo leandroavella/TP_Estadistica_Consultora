@@ -1,5 +1,61 @@
-<!-- COLUMNA IZQUIERDA: PARÁMETROS DEL MODELO DE REGRESIÓN DEL DOCTOR -->
-    <div class="col-lg-5">
+{% extends "base.html" %}
+
+{% block title %}Detalle Especialista | Consultora Médica{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-4 pb-2 border-bottom">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Inicio</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('especialistas') }}">Especialistas</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ doctor.nombre }}</li>
+            </ol>
+        </nav>
+        <h2 class="fw-bold mb-1">
+            <i class="bi bi-person-fill text-primary me-2"></i>{{ doctor.nombre }}
+        </h2>
+        <p class="text-muted mb-0">
+            {{ doctor.especialidad }} | {{ doctor.anios_experiencia }} años de experiencia
+        </p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- COLUMNA IZQUIERDA: MÉTRICAS Y EXPLICACIONES -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-dark text-white py-3">
+                <h5 class="fw-bold mb-0"><i class="bi bi-calculator me-2"></i>Análisis Estadístico</h5>
+            </div>
+            <div class="card-body p-4">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item px-0">
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold">Media de tiempo:</span>
+                            <span>{{ "%.2f"|format(metricas.media) }} min</span>
+                        </div>
+                        <p class="small text-muted mt-1 mb-0"><strong>{{ explicaciones.media.titulo }}:</strong> {{ explicaciones.media.explicacion }}</p>
+                    </li>
+                    <li class="list-group-item px-0">
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold">Desviación Estándar:</span>
+                            <span>{{ "%.2f"|format(metricas.desviacion) }} min</span>
+                        </div>
+                        <p class="small text-muted mt-1 mb-0"><strong>{{ explicaciones.desviacion_estandar.titulo }}:</strong> {{ explicaciones.desviacion_estandar.explicacion }}</p>
+                    </li>
+                    <li class="list-group-item px-0">
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold">Coeficiente de Variación (CV):</span>
+                            <span>{{ "%.2f"|format(metricas.cv) }}%</span>
+                        </div>
+                        <p class="small text-muted mt-1 mb-0"><strong>{{ explicaciones.coeficiente_variacion.titulo }}:</strong> {{ explicaciones.coeficiente_variacion.explicacion }}</p>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- REGRESIÓN LINEAL -->
         <div class="card shadow-sm border-0 h-100">
             <div class="card-header bg-dark text-white py-3">
                 <h5 class="fw-bold mb-0">
@@ -8,21 +64,7 @@
             </div>
             <div class="card-body p-4">
                 {% if reg and reg.modelo_edad %}
-                <p class="text-muted small mb-3">Parámetros obtenidos por mínimos cuadrados ordinarios (MCO) para el especialista:</p>
-                
                 <ul class="list-group list-group-flush mb-4 small">
-                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                        <span>Ordenada al origen (a):</span>
-                        <strong>{{ "%.2f"|format(reg.modelo_edad.a) }}</strong>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                        <span>Pendiente (b):</span>
-                        <strong>{{ "%.2f"|format(reg.modelo_edad.b) }}</strong>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                        <span>Coeficiente de Correlación (r):</span>
-                        <strong class="text-primary">{{ "%.4f"|format(reg.modelo_edad.r) }}</strong>
-                    </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center px-0">
                         <span>Coeficiente de Determinación (R²):</span>
                         <strong class="text-success">{{ "%.2f"|format(reg.modelo_edad.r2 * 100) }}%</strong>
@@ -30,7 +72,7 @@
                 </ul>
 
                 <div class="alert alert-light border small mb-0">
-                    <strong>Interpretación:</strong> El modelo explica el <strong>{{ "%.1f"|format(reg.modelo_edad.r2 * 100) }}%</strong> de la variabilidad en los tiempos de atención del doctor en función de la edad del paciente.
+                    <strong>Interpretación ({{ explicaciones.r_cuadrado.titulo }}):</strong> {{ explicaciones.r_cuadrado.explicacion }} (El modelo explica el <strong>{{ "%.1f"|format(reg.modelo_edad.r2 * 100) }}%</strong> de la variabilidad).
                 </div>
                 {% else %}
                 <p class="text-muted mb-0">No hay suficientes registros bivariados para este especialista.</p>
@@ -38,3 +80,87 @@
             </div>
         </div>
     </div>
+
+    <!-- COLUMNA DERECHA: GRÁFICO -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-dark text-white py-3">
+                <h5 class="fw-bold mb-0"><i class="bi bi-image me-2"></i>Gráfico de Regresión</h5>
+            </div>
+            <div class="card-body p-4 text-center">
+                <img src="{{ url_for('static', filename=ruta_grafico_doctor) }}" alt="Gráfico del Doctor" class="img-fluid rounded">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TABLA DE TURNOS E HISTORIAL -->
+<div class="card shadow-sm border-0 mt-4">
+    <div class="card-header bg-dark text-white py-3">
+        <h5 class="fw-bold mb-0"><i class="bi bi-table me-2"></i>Tabla de Turnos e Historial del Especialista</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th># Turno</th>
+                        <th>Paciente</th>
+                        <th>Horario / Fecha</th>
+                        <th>Edad (X)</th>
+                        <th>Tiempo Real (Y)</th>
+                        <th>Tiempo Predicho (Ŷ)</th>
+                        <th>Residuo (Y - Ŷ)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for turno in turnos %}
+                    <tr>
+                        <td>{{ turno.id_turno }}</td>
+                        <td>{{ turno.paciente }}</td>
+                        <td>{{ turno.fecha }} {{ turno.hora }}</td>
+                        <td>{{ turno.edad }}</td>
+                        <td>{{ turno.tiempo_estimado }} min</td>
+                        <td>{% if turno.y_hat %}{{ turno.y_hat }} min{% else %}-{% endif %}</td>
+                        <td class="{% if turno.residuo and turno.residuo > 0 %}text-danger{% elif turno.residuo and turno.residuo < 0 %}text-primary{% endif %}">
+                            {% if turno.residuo is not none %}{{ turno.residuo }} min{% else %}-{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- DESGLOSE MATEMÁTICO PASO A PASO -->
+{% if reg and reg.modelo_edad %}
+<div class="card shadow-sm border-0 mt-4 mb-5">
+    <div class="card-header bg-dark text-white py-3">
+        <h5 class="fw-bold mb-0"><i class="bi bi-journal-code me-2"></i>Desglose Matemático Paso a Paso</h5>
+    </div>
+    <div class="card-body p-4">
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="fw-bold text-primary">1. Centro de Medias</h6>
+                <p>Calculado como las medias aritméticas de la muestra:</p>
+                <div class="alert alert-secondary">
+                    (X̄, Ȳ) = ({{ "%.2f"|format(reg.modelo_edad.mean_x) }}, {{ "%.2f"|format(reg.modelo_edad.mean_y) }})
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h6 class="fw-bold text-primary">2. Cálculo de Parámetros</h6>
+                <p>Pendiente (β₁): {{ "%.4f"|format(reg.modelo_edad.b) }}</p>
+                <p>Intersección (β₀): {{ "%.4f"|format(reg.modelo_edad.a) }}</p>
+                <div class="alert alert-secondary">
+                    Ecuación: <strong>Ŷ = {{ "%.2f"|format(reg.modelo_edad.a) }} + {{ "%.2f"|format(reg.modelo_edad.b) }} · X</strong>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <h6 class="fw-bold text-primary">3. Coeficiente de Determinación (R²)</h6>
+        <p>El valor de <strong>R² = {{ "%.4f"|format(reg.modelo_edad.r2) }}</strong> indica que el <strong>{{ "%.1f"|format(reg.modelo_edad.r2 * 100) }}%</strong> de la variabilidad en el tiempo de atención (Y) es explicada por la edad del paciente (X) a través de este modelo lineal.</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
